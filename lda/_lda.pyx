@@ -110,7 +110,7 @@ def _sample_topics(int[:] WS, int[:] DS, int[:] ZS, int[:, :] nzw, int[:, :] ndz
         retrun alpha, eta
         
 
-cpdef double _loglikelihood(int[:, :] nzw, int[:, :] ndz, int[:] nz, int[:] nd, double alpha, double eta) nogil:
+cpdef double _loglikelihood(int[:, :] nzw, int[:, :] ndz, int[:] nz, int[:] nd, double[:] alpha, double eta) nogil:
     cdef int k, d
     cdef int D = ndz.shape[0]
     cdef int n_topics = ndz.shape[1]
@@ -119,10 +119,11 @@ cpdef double _loglikelihood(int[:, :] nzw, int[:, :] ndz, int[:] nz, int[:] nd, 
     cdef double ll = 0
 
     # calculate log p(w|z)
-    cdef double lgamma_eta, lgamma_alpha
+    cdef double lgamma_eta, alpha_sum
     with nogil:
         lgamma_eta = lgamma(eta)
-        lgamma_alpha = lgamma(alpha)
+        for i in range(alpha.shape[0]):
+            alpha_sum += alpha[i]
 
         ll += n_topics * lgamma(eta * vocab_size)
         for k in range(n_topics):
@@ -134,9 +135,9 @@ cpdef double _loglikelihood(int[:, :] nzw, int[:, :] ndz, int[:] nz, int[:] nd, 
 
         # calculate log p(z)
         for d in range(D):
-            ll += (lgamma(alpha * n_topics) -
-                    lgamma(alpha * n_topics + nd[d]))
+            ll += (lgamma(alpha_sum) -
+                    lgamma(alpha_sum + nd[d]))
             for k in range(n_topics):
                 if ndz[d, k] > 0:
-                    ll += lgamma(alpha + ndz[d, k]) - lgamma_alpha
+                    ll += lgamma(alpha[k] + ndz[d, k]) - lgamma(alpha[k])
         return ll
