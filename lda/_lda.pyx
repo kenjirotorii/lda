@@ -9,6 +9,7 @@ from libc.stdlib cimport malloc, free
 
 cdef extern from "gamma.h":
     cdef double lda_lgamma(double x) nogil
+    cdef double lda_digamma(double x) nogil
 
 
 cdef double lgamma(double x) nogil:
@@ -17,6 +18,10 @@ cdef double lgamma(double x) nogil:
             raise ValueError("x must be strictly positive")
     return lda_lgamma(x)
 
+
+cdef double digamma(double x) nogil:
+    return lda_digamma(x)
+    
 
 cdef int searchsorted(double* arr, int length, double value) nogil:
     """Bisection search (c.f. numpy.searchsorted)
