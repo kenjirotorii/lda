@@ -105,9 +105,9 @@ def _sample_topics(int[:] WS, int[:] DS, int[:] ZS, int[:, :] nzw, int[:, :] ndz
 
             psi_sum_de += digamma(nz[k] + eta * vocab_size) - digamma(eta * vocab_size)
 
-        eta = eta * psi_sum_nu / (W * psi_sum_de)
+        eta = eta * psi_sum_nu / (vocab_size * psi_sum_de)
 
-        retrun alpha, eta
+    return alpha, eta
         
 
 cpdef double _loglikelihood(int[:, :] nzw, int[:, :] ndz, int[:] nz, int[:] nd, double[:] alpha, double eta) nogil:
