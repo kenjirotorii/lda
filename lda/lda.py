@@ -307,8 +307,8 @@ class LDA:
         """Samples all topic assignments. Called once per iteration."""
         alpha = self.alpha
         eta = self.eta
-        nd = np.sum(ndz, axis=1).astype(np.intc)
+        nd = np.sum(self.ndz_, axis=1).astype(np.intc)
         alpha, eta = lda._lda._sample_topics(self.WS, self.DS, self.ZS, self.nzw_, self.ndz_, self.nz_, 
                                             nd, alpha, eta, rands)
-        self.alpha = alpha
+        self.alpha = np.array(alpha).astype(np.float64)
         self.eta = eta
