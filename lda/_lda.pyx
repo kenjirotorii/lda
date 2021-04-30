@@ -119,7 +119,8 @@ cpdef double _loglikelihood(int[:, :] nzw, int[:, :] ndz, int[:] nz, int[:] nd, 
     cdef double ll = 0
 
     # calculate log p(w|z)
-    cdef double lgamma_eta, alpha_sum
+    cdef double lgamma_eta
+    cdef double alpha_sum = 0
     with nogil:
         lgamma_eta = lgamma(eta)
         for i in range(alpha.shape[0]):
