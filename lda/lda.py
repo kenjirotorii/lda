@@ -95,7 +95,7 @@ class LDA:
                  refresh=10):
         self.n_topics = n_topics
         self.n_iter = n_iter
-        self.alpha = alpha
+        self.alpha = np.repeat(alpha, n_topics).astype(np.float64)
         self.eta = eta
         # if random_state is None, check_random_state(None) does nothing
         # other than return the current numpy RandomState
@@ -305,8 +305,10 @@ class LDA:
 
     def _sample_topics(self, rands):
         """Samples all topic assignments. Called once per iteration."""
-        n_topics, vocab_size = self.nzw_.shape
-        alpha = np.repeat(self.alpha, n_topics).astype(np.float64)
-        eta = np.repeat(self.eta, vocab_size).astype(np.float64)
-        lda._lda._sample_topics(self.WS, self.DS, self.ZS, self.nzw_, self.ndz_, self.nz_,
-                                alpha, eta, rands)
+        alpha = self.alpha
+        eta = self.eta
+        nd = np.sum(ndz, axis=1).astype(np.intc)
+        alpha, eta = lda._lda._sample_topics(self.WS, self.DS, self.ZS, self.nzw_, self.ndz_, self.nz_, 
+                                            nd, alpha, eta, rands)
+        self.alpha = alpha
+        self.eta = eta
