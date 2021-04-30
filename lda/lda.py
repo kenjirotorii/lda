@@ -92,7 +92,7 @@ class LDA:
     """
 
     def __init__(self, n_topics, n_iter=2000, alpha=0.1, eta=0.01, random_state=None,
-                 refresh=10):
+                 refresh=10, params_const=False):
         self.n_topics = n_topics
         self.n_iter = n_iter
         self.alpha = np.repeat(alpha, n_topics).astype(np.float64)
@@ -101,6 +101,7 @@ class LDA:
         # other than return the current numpy RandomState
         self.random_state = random_state
         self.refresh = refresh
+        self.params_const = params_const
 
         if alpha <= 0 or eta <= 0:
             raise ValueError("alpha and eta must be greater than zero")
@@ -305,10 +306,11 @@ class LDA:
 
     def _sample_topics(self, rands):
         """Samples all topic assignments. Called once per iteration."""
-        alpha = self.alpha
+        alpha = self.alpha.copy()
         eta = self.eta
         nd = np.sum(self.ndz_, axis=1).astype(np.intc)
         alpha, eta = lda._lda._sample_topics(self.WS, self.DS, self.ZS, self.nzw_, self.ndz_, self.nz_, 
                                             nd, alpha, eta, rands)
-        self.alpha = np.array(alpha).astype(np.float64)
-        self.eta = eta
+        if not self.params_const:
+            self.alpha = np.array(alpha).astype(np.float64)
+            self.eta = eta
