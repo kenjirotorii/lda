@@ -156,7 +156,7 @@ double lda_lgamma(double x)
     return (x - 0.5) * log(x) - x + HALF_LOG2_PI + sum / x;
 }
 
-double digamma(double x)
+double lda_digamma(double x)
 {
     /*
     reference: https://people.sc.fsu.edu/~jburkardt/cpp_src/asa103/asa103.cpp
