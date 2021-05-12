@@ -247,12 +247,15 @@ class LDA:
             random_state.shuffle(rands)
             if it % self.refresh == 0:
                 ll = self.loglikelihood()
-                logger.info("<{}> log likelihood: {:.0f}".format(it, ll))
+                co = self.coherence(X)
+                logger.info("<{}> log likelihood: {:.0f}, coherence: {:.2f}".format(it, ll, co))
                 # keep track of loglikelihoods for monitoring convergence
                 self.loglikelihoods_.append(ll)
+                self.coherences_.append(co)
             self._sample_topics(rands)
         ll = self.loglikelihood()
-        logger.info("<{}> log likelihood: {:.0f}".format(self.n_iter - 1, ll))
+        co = self.coherence(X)
+        logger.info("<{}> log likelihood: {:.0f}, coherence: {:.2f}".format(self.n_iter - 1, ll, co))
         # note: numpy /= is integer division
         self.components_ = (self.nzw_ + self.eta).astype(float)
         self.components_ /= np.sum(self.components_, axis=1)[:, np.newaxis]
@@ -292,6 +295,8 @@ class LDA:
             nzw_[z_new, w] += 1
             nz_[z_new] += 1
         self.loglikelihoods_ = []
+        self.coherences_ = []
+        self.topic_coherences = np.zeros(self.n_topics)
 
     def loglikelihood(self):
         """Calculate complete log likelihood, log p(w,z)
@@ -314,3 +319,27 @@ class LDA:
         if not self.params_const:
             self.alpha = np.array(alpha).astype(np.float64)
             self.eta = eta
+
+    def coherence(self, X, n_top_words=10):
+        """Calculate coherence measure using own corpurs.
+
+        The coherence calculated here is called u_mass coherence.
+        Formula used refers to the paper: Eq.1 in http://dirichlet.net/pdf/mimno11optimizing.pdf
+        """
+
+        Dv = (X > 0).sum(axis=0)    # Number of words' appearances, (W, )
+
+        coherence = 0
+        topic_word = (self.nzw_ + self.eta).astype(float)
+        for i, topic_dist in enumerate(topic_word):     # for each topic
+            top_idx = np.argsort(topic_dist)[:-(n_top_words+1):-1]    # list of top words' index
+            appearance = (X.T[top_idx] > 0).astype(np.intc)
+            coherence_ = 0
+            for m in range(1, n_top_words):
+                for l in range(m):
+                    coherence_ += np.log((sum(appearance[m] * appearance[l]) + 1) / Dv[top_idx[l]])
+
+            self.topic_coherences[i] = coherence_
+            coherence += coherence_ / self.n_topics
+
+        return coherence
