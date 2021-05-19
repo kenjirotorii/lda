@@ -247,15 +247,13 @@ class LDA:
             random_state.shuffle(rands)
             if it % self.refresh == 0:
                 ll = self.loglikelihood()
-                co = self.coherence(X)
-                logger.info("<{}> log likelihood: {:.0f}, coherence: {:.2f}".format(it, ll, co))
+                logger.info("<{}> log likelihood: {:.0f}".format(it, ll))
                 # keep track of loglikelihoods for monitoring convergence
                 self.loglikelihoods_.append(ll)
-                self.coherences_.append(co)
             self._sample_topics(rands)
         ll = self.loglikelihood()
-        co = self.coherence(X)
-        logger.info("<{}> log likelihood: {:.0f}, coherence: {:.2f}".format(self.n_iter - 1, ll, co))
+        self.coherence = self._coherence(X)
+        logger.info("<{}> log likelihood: {:.0f}".format(self.n_iter - 1, ll))
         # note: numpy /= is integer division
         self.components_ = (self.nzw_ + self.eta).astype(float)
         self.components_ /= np.sum(self.components_, axis=1)[:, np.newaxis]
@@ -295,7 +293,7 @@ class LDA:
             nzw_[z_new, w] += 1
             nz_[z_new] += 1
         self.loglikelihoods_ = []
-        self.coherences_ = []
+        self.__coherence = None
         self.topic_coherences = np.zeros(self.n_topics)
 
     def loglikelihood(self):
@@ -320,7 +318,15 @@ class LDA:
             self.alpha = np.array(alpha).astype(np.float64)
             self.eta = eta
 
-    def coherence(self, X, n_top_words=10):
+    @property
+    def coherence(self):
+        return self.__coherence
+    
+    @coherence.setter
+    def coherence(self, co):
+        self.__coherence = co
+
+    def _coherence(self, X, n_top_words=10):
         """Calculate coherence measure using own corpurs.
 
         The coherence calculated here is called u_mass coherence.
