@@ -334,12 +334,15 @@ class LDA:
         """
 
         Dv = (X > 0).sum(axis=0)    # Number of words' appearances, (W, )
+        Dv = np.squeeze(np.asarray(Dv))
 
         coherence = 0
         topic_word = (self.nzw_ + self.eta).astype(float)
         for i, topic_dist in enumerate(topic_word):     # for each topic
             top_idx = np.argsort(topic_dist)[:-(n_top_words+1):-1]    # list of top words' index
             appearance = (X.T[top_idx] > 0).astype(np.intc)
+            if not isinstance(appearance, np.ndarray):
+                appearance = appearance.toarray()
             coherence_ = 0
             for m in range(1, n_top_words):
                 for l in range(m):
