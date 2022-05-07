@@ -253,7 +253,7 @@ class LDA:
                 self.loglikelihoods_.append(ll)
             self._sample_topics(rands)
         ll = self.loglikelihood()
-        if self.calculate_coherence
+        if self.calculate_coherence:
             self.coherence = self._coherence(X)
         logger.info("<{}> log likelihood: {:.0f}".format(self.n_iter - 1, ll))
         # note: numpy /= is integer division
