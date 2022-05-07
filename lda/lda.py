@@ -92,7 +92,7 @@ class LDA:
     """
 
     def __init__(self, n_topics, n_iter=2000, alpha=0.1, eta=0.01, random_state=None,
-                 refresh=10, params_const=False):
+                 refresh=10, params_const=False, calculate_coherence=False):
         self.n_topics = n_topics
         self.n_iter = n_iter
         self.alpha = np.repeat(alpha, n_topics).astype(np.float64)
@@ -102,6 +102,7 @@ class LDA:
         self.random_state = random_state
         self.refresh = refresh
         self.params_const = params_const
+        self.calculate_coherence = calculate_coherence
 
         if alpha <= 0 or eta <= 0:
             raise ValueError("alpha and eta must be greater than zero")
@@ -252,7 +253,8 @@ class LDA:
                 self.loglikelihoods_.append(ll)
             self._sample_topics(rands)
         ll = self.loglikelihood()
-        self.coherence = self._coherence(X)
+        if self.calculate_coherence
+            self.coherence = self._coherence(X)
         logger.info("<{}> log likelihood: {:.0f}".format(self.n_iter - 1, ll))
         # note: numpy /= is integer division
         self.components_ = (self.nzw_ + self.eta).astype(float)
